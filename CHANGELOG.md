@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.2
+
+- Fixed floor-mode zoom appearing dead when Far Sight is also installed. Far Sight reactivates the
+  Close gameplay camera as it stands down to hand build mode over, leaving it live alongside the
+  mode's camera; the game then renders Close - the wrong angle in floor mode - while the zoom drove
+  the top-down camera that was no longer on screen. The mod now re-asserts the game's own rule that
+  only the current mode's camera is active while building, so the right camera shows and it is the
+  one being zoomed.
+- Reworked "is build mode open" tracking. It used to count decorate-substate activations against
+  deactivations, but the game's `StateMachine.OnDeactivate` is empty and never deactivates its
+  substate on the way out, so the count leaked a permanent "still decorating" and the mod kept
+  driving the camera during normal play. Build-mode state and the floor/decorate mode are now read
+  straight from the live player state (cached per frame), which cannot leak and always reports the
+  right mode. This also removes the separate substate patch and the tracking postfixes it needed.
+
 ## 1.0.1
 
 - Fixed the zoom not activating when build mode is entered by placing straight from the

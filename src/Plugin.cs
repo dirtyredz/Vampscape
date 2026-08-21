@@ -14,7 +14,7 @@ namespace Vampscape
         public const string PluginName = "Vampscape";
         // Keep in step with <Version> in the csproj - pack.ps1 names the archive from that one
         // and BepInEx reports this one. See 12-versioning-and-release.md.
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.0.2";
 
         private Harmony harmony;
 
@@ -23,8 +23,6 @@ namespace Vampscape
             Plugin.Bind(Config, Logger);
 
             harmony = new Harmony(PluginGuid);
-            harmony.PatchAll(typeof(DecorateWatch));
-            harmony.PatchAll(typeof(DecorateStateGate));
             harmony.PatchAll(typeof(ScrollGate));
 
             gameObject.AddComponent<BuildZoom>();

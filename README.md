@@ -2,6 +2,9 @@
 
 Zoom the camera out while you are building. Hold **Left Alt** and scroll.
 
+**Status:** 🚀 **Published** — v1.0.2 live on Nexus as
+[mod 128](https://www.nexusmods.com/moonlightpeaks/mods/128).
+
 Far Sight already covers zooming during normal play, and deliberately stands down in build mode.
 This fills that gap and nothing else — it is scoped to build mode specifically, not a general
 zoom mod.
@@ -63,6 +66,20 @@ worth knowing about: Far Sight restores its lenses when it stands down, on the s
 mode opens, and Unity does not order the two plugins' `Update` calls. Capturing a baseline on that
 frame could capture Far Sight's zoomed value and treat it as the default, so this waits a few
 frames first. The camera is blending over that window anyway.
+
+There is a second interaction, fixed in 1.0.2. When Far Sight stands down to hand build mode over,
+it reactivates the Close gameplay camera. The game had just left only the mode's camera active
+(Far for Decorate, TopDown for Floor), so Close ends up live alongside it and the Cinemachine brain
+renders Close — the wrong angle in floor mode — while the zoom drove a camera no longer on screen.
+So while building, this re-asserts the game's own rule that only the current mode's camera is
+active: it deactivates the others, but only once the mode's own camera is confirmed live, so it can
+never blank the view mid-blend.
+
+"Whichever camera is live" is read straight from the player's current state each frame, cached once
+per frame, rather than tracked by patching the decorate state machine's activate/deactivate. The
+game's `StateMachine.OnDeactivate` never deactivates its substate on the way out, so a substate
+event counter would leak a permanent "still decorating" and keep the mod driving the camera during
+normal play; the live read cannot.
 
 Nothing is written to your save.
 

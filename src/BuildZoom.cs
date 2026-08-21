@@ -72,6 +72,8 @@ namespace Vampscape
                 return;
             }
 
+            KeepModeCameraAlone(gameCamera, vcam);
+
             var target = floor ? floorTarget : decorateTarget;
             var current = floor ? floorCurrent : decorateCurrent;
 
@@ -105,6 +107,39 @@ namespace Vampscape
         private void OnDestroy()
         {
             Restore();
+        }
+
+        /// <summary>
+        /// Keeps the mode's camera the only build camera on screen.
+        ///
+        /// The game's SetMode leaves exactly one of Far/Close/TopDown active, but Far Sight
+        /// reactivates the Close gameplay camera when it stands down to hand build mode over, so
+        /// Close ends up live alongside the mode's camera. The brain then renders Close - the wrong
+        /// angle in floor mode - and the zoom lands on a camera that is not on screen, which reads
+        /// as the zoom being dead. Re-asserting the game's own rule fixes both: the right camera
+        /// shows, and it is the one being zoomed.
+        ///
+        /// Only ever deactivates, and only once the mode's own camera is confirmed live, so it can
+        /// never blank the view by switching everything off during a blend.
+        /// </summary>
+        private static void KeepModeCameraAlone(GameCamera gameCamera, CinemachineVirtualCamera keep)
+        {
+            if (keep == null || !keep.gameObject.activeSelf)
+            {
+                return;
+            }
+
+            Deactivate(gameCamera.VirtualCameraFar, keep);
+            Deactivate(gameCamera.VirtualCameraClose, keep);
+            Deactivate(gameCamera.VirtualCameraTopDown, keep);
+        }
+
+        private static void Deactivate(CinemachineVirtualCamera vcam, CinemachineVirtualCamera keep)
+        {
+            if (vcam != null && vcam != keep && vcam.gameObject.activeSelf)
+            {
+                vcam.gameObject.SetActive(false);
+            }
         }
 
         /// <summary>

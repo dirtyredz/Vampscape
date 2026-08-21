@@ -18,7 +18,7 @@ Mechanics: [13-nexus-page-standard.md](../../13-nexus-page-standard.md).
 | **Name** | Vampscape |
 | **Summary** (short, shows in listings) | Can't see enough of your build? Hold a key and scroll to zoom out — rotating and the brush still use the plain wheel, untouched. |
 | **Category** | *Proposed:* User Interface — it is purely a camera mod, nothing it does is a gameplay rule |
-| **Version** | 1.0.0 |
+| **Version** | 1.0.2 |
 | **Requirements** | BepInEx 5 (win_x64), 5.4.23.5 or newer — required |
 | | [Mod Nook](https://www.nexusmods.com/moonlightpeaks/mods/127) — optional, for in-game settings |
 | | Mod Menu — optional, the alternative to Mod Nook |
@@ -102,6 +102,24 @@ Vampscape does not touch persistence, so it cannot conflict with anything that c
 
 Player-facing. Describe the **symptom**, not the cause — the repo README names the Harmony
 patches; that belongs in the repo.
+
+### 1.0.2
+
+```
+- Fixed the build-mode zoom doing nothing in floor (top-down) mode when Far Sight is also
+  installed. The game was left showing the angled camera instead of the top-down one, so
+  zooming moved a view that was not on screen. Floor mode now shows the correct top-down
+  camera again, and the zoom works on it. Far Sight can stay enabled.
+- Tidied up how the mod detects build mode, so it no longer keeps a grip on the camera after
+  you leave build mode.
+```
+
+### 1.0.1
+
+```
+- Fixed the zoom not turning on when you entered build mode by placing a path or floor tile
+  straight from your inventory, rather than opening decorate mode the normal way.
+```
 
 ### 1.0.0
 
