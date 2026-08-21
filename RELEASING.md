@@ -15,8 +15,8 @@ powershell -File pack.ps1
 ```
 
 Produces `dist/Vampscape-<version>.zip`, reading the version from the csproj so the archive
-can never disagree with the DLL, and refusing to pack if `PluginVersion` in `Plugin.cs`
-disagrees with it.
+can never disagree with the DLL; `Plugin.cs` derives that same version at build time via
+`ModBuildInfo.Version`.
 
 There is no test project. Every code path here reads live game state — `GameCamera`'s
 Cinemachine vcams, the decorate state machine, the decoratable area's confiner — none of which
@@ -48,7 +48,7 @@ Harmony cannot resolve it. Confirm the log line before anything else.
 - [ ] Keyword sweep for the summary's searchable words (`zoom`, `camera`, `build`), same method
       Transplant and Coffin Break used
 - [ ] The five open decisions in [NEXUS.md](NEXUS.md) resolved, not left as proposals
-- [ ] `<Version>` and `PluginVersion` match — `pack.ps1` enforces this, but check the number is
+- [ ] `<Version>` is the single source of truth — `Plugin.cs` derives from it via `ModBuildInfo.Version`, but check the number is
       the one you meant
 - [ ] CHANGELOG has one entry for this version
 - [ ] Fresh install: delete `BepInEx/config/com.dirtyredz.moonlightpeaks.vampscape.cfg`, launch,
