@@ -78,13 +78,13 @@ namespace Vampscape
             var current = floor ? floorCurrent : decorateCurrent;
 
             target = Mathf.Clamp(target + ReadZoomInput(), Plugin.MinZoom.Value, Plugin.MaxZoom.Value);
-            if (float.IsNaN(target) || float.IsInfinity(target))
+            if (IsBad(target))
             {
                 target = 1f;
             }
 
             current = Mathf.Lerp(current, target, Mathf.Clamp01(Time.unscaledDeltaTime * Damping));
-            if (float.IsNaN(current) || float.IsInfinity(current))
+            if (IsBad(current))
             {
                 current = target;
             }
@@ -205,7 +205,7 @@ namespace Vampscape
             }
 
             var axis = player.GetAxis(24);
-            if (float.IsNaN(axis) || float.IsInfinity(axis))
+            if (IsBad(axis))
             {
                 return 0f;
             }
@@ -217,12 +217,22 @@ namespace Vampscape
             }
 
             var scaled = Mathf.Sign(axis) * (Mathf.Abs(axis) - deadzone) / (1f - deadzone);
-            return float.IsNaN(scaled) || float.IsInfinity(scaled) ? 0f : Mathf.Clamp(scaled, -1f, 1f);
+            return IsBad(scaled) ? 0f : Mathf.Clamp(scaled, -1f, 1f);
+        }
+
+        /// <summary>
+        /// NaN or infinity - either poisons the lens if written through. Every float that reaches a
+        /// lens write or feeds back into next frame's state is checked with this. Not float.IsFinite:
+        /// that is a netstandard2.1 surface the game's Mono runtime does not reliably ship.
+        /// </summary>
+        private static bool IsBad(float value)
+        {
+            return float.IsNaN(value) || float.IsInfinity(value);
         }
 
         private void Apply(CinemachineVirtualCamera vcam, float factor)
         {
-            if (factor <= 0.01f || float.IsNaN(factor) || float.IsInfinity(factor))
+            if (factor <= 0.01f || IsBad(factor))
             {
                 return;
             }
