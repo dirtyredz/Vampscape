@@ -37,7 +37,9 @@ verification is the manual [TESTING.md](TESTING.md) checklist.
 **Enforced homes:**
 
 - `src/game/` — Harmony patches and live-game bridges
-- `src/core/` — the mod's own logic, state, config and input handling
+- `src/core/` — the mod's own logic, config and input handling: the files with NO game-type
+  dependency. (Not "state" — this mod's state lives in `game/BuildZoom.cs`/`game/DecorateWatch.cs`,
+  which own it precisely because they read the live game.)
 - `scripts/` — repo git-hook installers
 - `src/Plugin.cs` — BepInEx entry point; must sit beside the `.csproj`
 - `pack.ps1` — release archive packer; workspace-synced canonical, must stay at the repo root
