@@ -8,8 +8,39 @@ Last full review: 2026-08-22
 ## Overview
 
 A single BepInEx 5 / HarmonyX plugin DLL (netstandard2.1) that adds a build-mode camera zoom to
-Moonlight Peaks. Five small source files, one namespace (`Vampscape`), no sub-namespaces. Plugin
-`.cs` sits flat in `src/` (workspace convention — no `src/Vampscape/`). Writes nothing to the save.
+Moonlight Peaks. Five small source files, one namespace (`Vampscape`), no sub-namespaces — the
+folders below group by responsibility only; C# namespaces are deliberately left flat. `Plugin.cs`
+stays beside the `.csproj` at `src/` (BepInEx entry point). Writes nothing to the save.
+
+## Layout
+
+```
+Vampscape/
+├── src/
+│   ├── Vampscape.csproj        # SDK-style; **/*.cs globs recursively, so folders need no edit
+│   ├── Plugin.cs               # BepInEx entry point + static config/log holder (stays at root)
+│   ├── game/                   # touches the live game: Harmony patches & game-state bridges
+│   │   ├── ScrollGate.cs       #   Harmony postfix on Input.MouseScrollDelta
+│   │   ├── DecorateWatch.cs    #   reads live PlayerView state — is build mode open?
+│   │   └── BuildZoom.cs        #   MonoBehaviour driving GameCamera's Cinemachine lenses
+│   └── core/                   # the mod's own logic, independent of game types
+│       └── Hotkey.cs           #   hold-binding key check (input)
+├── scripts/                    # repo git-hook installers (shell)
+├── docs/                       # ARCHITECTURE / DECISIONS / FEATURES / ROADMAP / BACKLOG / GOTCHAS
+├── screenshots/                # Nexus banner + thumbnail
+└── pack.ps1                    # release archive packer (workspace-synced canonical)
+```
+
+There is no `src/ui/` — this mod draws nothing, it only bends the camera. No `tests/` either;
+verification is the manual [TESTING.md](TESTING.md) checklist.
+
+**Enforced homes:**
+
+- `src/game/` — Harmony patches and live-game bridges
+- `src/core/` — the mod's own logic, state, config and input handling
+- `scripts/` — repo git-hook installers
+- `src/Plugin.cs` — BepInEx entry point; must sit beside the `.csproj`
+- `pack.ps1` — release archive packer; workspace-synced canonical, must stay at the repo root
 
 ## Architecture at a glance
 
@@ -45,7 +76,7 @@ internal. No cycles.
   the live camera's lens, keeps only the mode's camera active, refreshes the pan confiner, and
   restores baselines on exit. Several sub-concerns, all serving the one "zoom the build camera"
   feature (see [Structural debt](#structural-debt)).
-- **Key file:** [src/BuildZoom.cs](src/BuildZoom.cs) (~335 lines).
+- **Key file:** [src/game/BuildZoom.cs](src/game/BuildZoom.cs) (~335 lines).
 - **Depends on:** `DecorateWatch`, `Hotkey`, `Plugin`, Cinemachine, Rewired, `GameCamera`.
 - **Seam:** input mapping (`ReadZoomInput`/`ReadControllerZoom`), camera arbitration
   (`KeepModeCameraAlone`), and lens/baseline handling (`Apply`/`Restore`) are the three natural cut
@@ -54,18 +85,18 @@ internal. No cycles.
 ### `DecorateWatch` — build-mode state [leaf]
 - **Responsibility:** answers "is build mode open?" and "Decorate or Floor?" by reading the live
   player state once per frame (cached). No latching — see [DECISIONS.md](docs/DECISIONS.md).
-- **Key file:** [src/DecorateWatch.cs](src/DecorateWatch.cs). **Depends on:** `PlayerView`, game state types.
+- **Key file:** [src/game/DecorateWatch.cs](src/game/DecorateWatch.cs). **Depends on:** `PlayerView`, game state types.
 
 ### `Hotkey` — hold-binding check [leaf]
 - **Responsibility:** "is this `KeyboardShortcut` held right now?" without `KeyboardShortcut.IsPressed`'s
   modifier-block behaviour (which fails whenever any other key is down).
-- **Key file:** [src/Hotkey.cs](src/Hotkey.cs). **Note:** intentionally copied verbatim across
+- **Key file:** [src/core/Hotkey.cs](src/core/Hotkey.cs). **Note:** intentionally copied verbatim across
   sibling mods (Transplant, Plant Peek) — a deliberate duplication, documented in its header, not debt.
 
 ### `ScrollGate` — wheel suppressor [leaf-ish]
 - **Responsibility:** one Harmony postfix on `Input.MouseScrollDelta`'s getter; zeroes the wheel
   while the gate is open so rotate + both brush sizers don't also fire.
-- **Key file:** [src/ScrollGate.cs](src/ScrollGate.cs). **Depends on:** `Plugin`, `DecorateWatch`, `Hotkey`.
+- **Key file:** [src/game/ScrollGate.cs](src/game/ScrollGate.cs). **Depends on:** `Plugin`, `DecorateWatch`, `Hotkey`.
 
 ## Key flows
 
@@ -77,7 +108,9 @@ Full sequences in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#key-flows).
 
 ## Conventions
 
-- Plugin `.cs` flat in `src/`; docs + `pack.ps1` at mod root.
+- Code grouped by responsibility under `src/game/` and `src/core/` (see [Layout](#layout));
+  `Plugin.cs` stays at `src/` root; docs + `pack.ps1` at mod root. One flat namespace throughout —
+  moving a file never changes its namespace or any `using`.
 - Version single-sourced from `<Version>` in [src/Vampscape.csproj](src/Vampscape.csproj) via
   `GenerateModBuildInfo` in [Directory.Build.props](Directory.Build.props); never hardcode it in
   `Plugin.cs`. `pack.ps1` and `Directory.Build.props` are **workspace-synced canonicals** — don't
@@ -89,9 +122,9 @@ Full sequences in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#key-flows).
 | Want to… | Go to |
 |---|---|
 | Add / change a setting | `Plugin.Bind()` in [src/Plugin.cs](src/Plugin.cs) |
-| Change zoom feel (damping, warmup, clamps) | consts atop [src/BuildZoom.cs](src/BuildZoom.cs) |
-| Change what suppresses the wheel | [src/ScrollGate.cs](src/ScrollGate.cs) |
-| Change how build-mode state is detected | [src/DecorateWatch.cs](src/DecorateWatch.cs) |
+| Change zoom feel (damping, warmup, clamps) | consts atop [src/game/BuildZoom.cs](src/game/BuildZoom.cs) |
+| Change what suppresses the wheel | [src/game/ScrollGate.cs](src/game/ScrollGate.cs) |
+| Change how build-mode state is detected | [src/game/DecorateWatch.cs](src/game/DecorateWatch.cs) |
 | Add a referenced game assembly | `<ItemGroup>` in [src/Vampscape.csproj](src/Vampscape.csproj) |
 | Manual test plan | [TESTING.md](TESTING.md) |
 | Release / pack | [RELEASING.md](RELEASING.md), `pack.ps1` |

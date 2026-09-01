@@ -16,7 +16,12 @@ Orientation lives in the doc set — read those, don't duplicate them here:
 ## Conventions
 
 - **Commit identity:** `dirtyredz <dirtyredz@live.com>`. Never the work email.
-- **Layout:** plugin `.cs` flat in `src/` (no `src/Vampscape/`); docs + `pack.ps1` at the repo root.
+- **Layout:** code is grouped by responsibility — `src/game/` (Harmony patches + live-game
+  bridges) and `src/core/` (the mod's own logic); `Plugin.cs` stays at `src/` root beside the
+  `.csproj`; docs + `pack.ps1` at the repo root. The folders are **not** namespaces: everything
+  stays in the one flat `Vampscape` namespace, so moving a file never touches a `namespace` or a
+  `using`. The `.csproj` is SDK-style, so `**/*.cs` globs recursively and needs no edit either.
+  The enforced home list lives under `## Layout` in [STRUCTURE.md](STRUCTURE.md).
 - **Versioning:** bump `<Version>` in [src/Vampscape.csproj](src/Vampscape.csproj) **only**, only
   when publishing. It's single-sourced into `[BepInPlugin]` via `GenerateModBuildInfo` in
   `Directory.Build.props` — never hardcode a version in `Plugin.cs`.
