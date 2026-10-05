@@ -56,4 +56,9 @@ only the csproj `<Version>` when publishing; edit the canonicals in the workspac
 If Harmony can't resolve it, `PatchAll` throws at load. **Do instead:** after any change near it,
 check `BepInEx/LogOutput.log` for the `Vampscape … loaded` line (see [TESTING.md](../TESTING.md)).
 
+## No automated tests (structural, accepted)
+Every path reads Unity/game types; verification is the manual
+[TESTING.md](../TESTING.md) checklist. Structural, not fixable without a game-mock layer;
+not worth it at this size.
+
 _Living doc — refresh with /project-docs when it drifts._
